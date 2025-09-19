@@ -200,7 +200,9 @@ Consistency Policy : resync
        1       8       16        1      active sync   /dev/sdb
        3       8       32        2      active sync   /dev/sdc
 
+
 ...........
+
 
 
 #rebuild comleted
