@@ -161,7 +161,7 @@ mount /fs5
 #add HS drive to array
 mdadm /dev/md0 --add /dev/sdd
 
-#degrade array
+#degrade array 
 root@ubuntu:~# mdadm /dev/md0 --fail /dev/sdd;cat /proc/mdstat;mdadm --detail /dev/md0
 mdadm: set device faulty failed for /dev/sdd:  No such device
 Personalities : [raid6] [raid5] [raid4]
@@ -202,7 +202,9 @@ Consistency Policy : resync
 
 ...........
 
+
 #rebuild comleted
+
 root@ubuntu:~# mdadm --detail /dev/md0|grep -i -e update -e state;cat /proc/mdstat
        Update Time : Fri Sep 19 17:58:13 2025
              State : clean
