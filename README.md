@@ -204,9 +204,6 @@ Consistency Policy : resync
 
 
 #rebuild comleted
-
-
-2
 root@ubuntu:~# mdadm --detail /dev/md0|grep -i -e update -e state;cat /proc/mdstat
        Update Time : Fri Sep 19 17:58:13 2025
              State : clean
