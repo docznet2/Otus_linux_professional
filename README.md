@@ -125,12 +125,16 @@ menuentry 'Ubuntu' --class ubuntu --class gnu-linux --class gnu --class os $menu
 #              02 Работа с mdadm
 ########################################################
 
+
 #raid
+
 mdadm --create /dev/md0 -l 5 -n 3 /dev/sd[abc]
 echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
 mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf
 
+
 #partitions
+
 parted /dev/md0 mklabel gpt
 parted /dev/md0 mkpart primary ext4 2MiB 258MiB
 parted /dev/md0 mkpart primary ext4 258MiB 514MiB
@@ -138,14 +142,18 @@ parted /dev/md0 mkpart primary ext4 514MiB 770MiB
 parted /dev/md0 mkpart primary ext4 770MiB 1026MiB
 parted /dev/md0 mkpart primary ext4 1026MiB 1282MiB
 
+
 #fs
+
 mkfs.ext4 /dev/md0p1
 mkfs.ext4 /dev/md0p2
 mkfs.ext4 /dev/md0p3
 mkfs.ext4 /dev/md0p4
 mkfs.ext4 /dev/md0p5
 
+
 #mounting
+
 part=1;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
 part=2;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
 part=3;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
@@ -158,10 +166,14 @@ mount /fs3
 mount /fs4
 mount /fs5
 
+
 #add HS drive to array
+
 mdadm /dev/md0 --add /dev/sdd
 
+
 #degrade array 
+
 root@ubuntu:~# mdadm /dev/md0 --fail /dev/sdd;cat /proc/mdstat;mdadm --detail /dev/md0
 mdadm: set device faulty failed for /dev/sdd:  No such device
 Personalities : [raid6] [raid5] [raid4]
@@ -203,9 +215,8 @@ Consistency Policy : resync
 
 ...........
 
-
-
 #rebuild comleted
+
 root@ubuntu:~# mdadm --detail /dev/md0|grep -i -e update -e state;cat /proc/mdstat
        Update Time : Fri Sep 19 17:58:13 2025
              State : clean
