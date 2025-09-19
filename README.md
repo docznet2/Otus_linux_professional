@@ -1,5 +1,8 @@
 # Otus_linux_professional
-                Обновление ядра системы
+
+########################################################
+#              01 Обновление ядра системы
+########################################################
 > bash -x /tmp/kernupd.sh 2>&1 | tee /out.log
 
 ==============================================================
@@ -115,3 +118,97 @@ menuentry 'Ubuntu' --class ubuntu --class gnu-linux --class gnu --class os $menu
 
 Но тем не менее, как видно в листинге выше, ОС на новом ядре запустилась.
 Можно, плиз, небольшое пояснение относително того что не поставилось (роль этого пакета) и где это гипотетически может выстрелить, если задумать всерьез такое эксплуатировать?
+
+
+
+########################################################
+#              02 Работа с mdadm
+########################################################
+
+#raid
+mdadm --create /dev/md0 -l 5 -n 3 /dev/sd[abc]
+echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
+mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf
+
+#partitions
+parted /dev/md0 mklabel gpt
+parted /dev/md0 mkpart primary ext4 2MiB 258MiB
+parted /dev/md0 mkpart primary ext4 258MiB 514MiB
+parted /dev/md0 mkpart primary ext4 514MiB 770MiB
+parted /dev/md0 mkpart primary ext4 770MiB 1026MiB
+parted /dev/md0 mkpart primary ext4 1026MiB 1282MiB
+
+#fs
+mkfs.ext4 /dev/md0p1
+mkfs.ext4 /dev/md0p2
+mkfs.ext4 /dev/md0p3
+mkfs.ext4 /dev/md0p4
+mkfs.ext4 /dev/md0p5
+
+#mounting
+part=1;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
+part=2;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
+part=3;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
+part=4;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
+part=5;mkdir /fs${part};echo "/dev/md0p${part} /fs${part}        ext4    defaults 1       2" >> /etc/fstab
+systemctl daemon-reload
+mount /fs1
+mount /fs2
+mount /fs3
+mount /fs4
+mount /fs5
+
+#add HS drive to array
+mdadm /dev/md0 --add /dev/sdd
+
+#degrade array
+root@ubuntu:~# mdadm /dev/md0 --fail /dev/sdd;cat /proc/mdstat;mdadm --detail /dev/md0
+mdadm: set device faulty failed for /dev/sdd:  No such device
+Personalities : [raid6] [raid5] [raid4]
+md0 : active raid5 sda[5] sdc[3] sdb[1]
+      2093056 blocks super 1.2 level 5, 512k chunk, algorithm 2 [3/3] [UUU]
+
+unused devices: <none>
+/dev/md0:
+           Version : 1.2
+     Creation Time : Wed Sep 17 19:44:13 2025
+        Raid Level : raid5
+        Array Size : 2093056 (2044.00 MiB 2143.29 MB)
+     Used Dev Size : 1046528 (1022.00 MiB 1071.64 MB)
+      Raid Devices : 3
+     Total Devices : 3
+       Persistence : Superblock is persistent
+
+       Update Time : Fri Sep 19 17:58:13 2025
+             State : clean
+    Active Devices : 3
+   Working Devices : 3
+    Failed Devices : 0
+     Spare Devices : 0
+
+            Layout : left-symmetric
+        Chunk Size : 512K
+
+Consistency Policy : resync
+
+              Name : ubuntu:0  (local to host ubuntu)
+              UUID : 30c66efa:211ef961:4690b593:e5b2cb6e
+            Events : 66
+
+    Number   Major   Minor   RaidDevice State
+       5       8        0        0      active sync   /dev/sda
+       1       8       16        1      active sync   /dev/sdb
+       3       8       32        2      active sync   /dev/sdc
+
+...........
+
+#rebuild comleted
+root@ubuntu:~# mdadm --detail /dev/md0|grep -i -e update -e state;cat /proc/mdstat
+       Update Time : Fri Sep 19 17:58:13 2025
+             State : clean
+    Number   Major   Minor   RaidDevice State
+Personalities : [raid6] [raid5] [raid4]
+md0 : active raid5 sda[5] sdc[3] sdb[1]
+      2093056 blocks super 1.2 level 5, 512k chunk, algorithm 2 [3/3] [UUU]
+
+unused devices: <none>
