@@ -244,7 +244,8 @@ unused devices: <none>
 > lvcreate -n rootfs -L8G sysvg  
 > mkfs.ext4 /dev/mapper/sysvg-rootfs  
 > mount /dev/mapper/sysvg-rootfs /newroot  
-> rsync --exclude proc --progress -ar /mnt/ /newroot  
+> rsync --exclude proc --progress -ar /mnt/ /newroot 
+ 
 #и получаю "No space left on device" ибо убунта с графикой была. Что ж, накину места, под PV подключал 20Gb диск.  
 > lvextend -r -l+100%FREE /dev/mapper/sysvg-rootfs  
 > rsync --exclude proc --progress -ar /mnt/ /newroot  
