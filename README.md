@@ -230,9 +230,9 @@ unused devices: <none>
 ########################################################
 
 #live-cd сессия
-> #booting from installer CD Ubuntu 22.10
-> #Switching terminal to shell (Ctrl+Alt+F3)
-> #Logging in with login ubuntu and empty passwowrd
+#booting from installer CD Ubuntu 22.10
+#Switching terminal to shell (Ctrl+Alt+F3)
+#Logging in with login ubuntu and empty passwowrd
 > sudo -i
 > mount /dev/sde3 /mnt
 > mkdir /newroot
@@ -256,14 +256,20 @@ unused devices: <none>
 > mount --bind /dev/sde2 /newroot/boot/efi
 > chroot /newroot
 > grub-mkconfig -o /boot/grub/grub.cfg
+
 #Обнаруживаю что initramfs-tools не был установлен
+
 > apt install initramfs-tools
 > update-initramfs -u
+
 #Правим fstab
+
 > sed -i -r -e 's/([[:blank:]*]|)([^#].*)([[:blank:]*])(\/)([[:blank:]*])(.*)/\1\/dev\/mapper\/sysvg-rootfs\3\4\5\6' /etc/fstab
+
 #Перезагружаемся... и понимаем, что 1st-stage grub (у меня BIOS инсталляция, как оказалось) ничего не знает о наших манипуляциях.
 #Снова грузим инсталлер убунты
 #Повторяем монтирования
+
 > mv /newroot/boot /newroot/boot_backup
 > mkdir /newroot/boot
 > mount --bind /mnt/boot /newroot/boot
@@ -276,11 +282,13 @@ unused devices: <none>
 ...
 
 #Тут я вспомнил, что существует еще grub-install и оставляю /boot на lvm, удаляю раздел sde3
+
 > mv /boot_backup/* /boot/
 > rm -rdf /boot_backup/
 > parted /dev/sde rm 3
 
 #Создаём еще один для lvm
+
 > parted /dev/sde mkpart primary 541 21000MiB
 > pvcreate /dev/sde3
 > vgextend sysvg /dev/sde3
@@ -289,15 +297,18 @@ unused devices: <none>
 > pvremove /dev/sdf
 
 #Обновляем grub конфиги
+
 > grub-install --target=i386-pc /dev/sde
 > grub-mkconfig -o /boot/grub/grub.cfg
 
 #Добавляю 2 новых диска под PV, делаю рескан
+
 > for i in /sys/class/scsi_host/*;do echo "- - -" > ${i}/scan;done
 > pvcreate /dev/sdh /dev/sdg
 > vgcreate datavg /dev/sdg /dev/sdh
 
 #Мувим home
+
 > lvcreate -n homefs -L5G datavg
 > mkfs.ext4 /dev/mapper/datavg-homefs
 > mv /home /home_old
@@ -308,6 +319,7 @@ unused devices: <none>
 > rm -d /home_old
 
 #мувим var
+
 > lvcreate -n varfs -L10G -m1 datavg
 > mkfs.ext4 /dev/mapper/datavg-varfs
 > init 1
@@ -324,6 +336,7 @@ unused devices: <none>
 
 
 #Работа со снапшотами
+
 > echo megafile > /home/mike/test
 > lvcreate -L100M -s -n homefs_snap /dev/mapper/datavg-homefs
 > rm /home/mike/test
@@ -332,21 +345,30 @@ unused devices: <none>
 > umount /home
 
 > lvconvert --merge /dev/mapper/datavg-homefs_snap
+
 #и почему-то получаю:
+
   Delaying merge since origin is open.
   Merging of snapshot datavg/homefs_snap will occur on next activation of datavg/homefs.
+
 #фс отмонтирована. Деактивировать LV тоже не удаётся:
+
 root@ubuntu:~# lvchange /dev/datavg/homefs -an
   Logical volume datavg/homefs contains a filesystem in use.
+
 #в mount тоже ничего такого
+
 root@ubuntu:~# mount|grep home
 root@ubuntu:~#
 
 #Не знаю что можно еще сделать, перезагружаюсь...
+
 > reboot
 ...
 > mount /home
+
 #Проверяем наличие/отсутствие файлов созданных до/после снепшота
+
 root@ubuntu:~# cat /home/mike/test
 megafile
 root@ubuntu:~# cat /home/mike/test2
