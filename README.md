@@ -245,7 +245,7 @@ unused devices: <none>
 > mkfs.ext4 /dev/mapper/sysvg-rootfs  
 > mount /dev/mapper/sysvg-rootfs /newroot  
 > rsync --exclude proc --progress -ar /mnt/ /newroot 
- 
+
 #и получаю "No space left on device" ибо убунта с графикой была. Что ж, накину места, под PV подключал 20Gb диск.  
 > lvextend -r -l+100%FREE /dev/mapper/sysvg-rootfs  
 > rsync --exclude proc --progress -ar /mnt/ /newroot  
@@ -336,20 +336,19 @@ unused devices: <none>
 > echo megafile2 > /home/mike/test2  
 > #Разрешаю рута по ssh, выхожу из текущей сесии, блокирующей home, подключаюсь под рутом  
 > umount /home  
-
-> lvconvert --merge /dev/mapper/datavg-homefs_snap
+> lvconvert --merge /dev/mapper/datavg-homefs_snap  
 
 #и почему-то получаю:  
 >  Delaying merge since origin is open.
 >  Merging of snapshot datavg/homefs_snap will occur on next activation of datavg/homefs.
 
 #фс отмонтирована. Деактивировать LV тоже не удаётся:  
->root@ubuntu:~# lvchange /dev/datavg/homefs -an  
+> root@ubuntu:~# lvchange /dev/datavg/homefs -an  
 >  Logical volume datavg/homefs contains a filesystem in use.  
 
 #в mount тоже ничего такого  
-root@ubuntu:~# mount|grep home  
-root@ubuntu:~#  
+> root@ubuntu:~# mount|grep home  
+> root@ubuntu:~#  
 
 #Не знаю что можно еще сделать, перезагружаюсь...  
 
@@ -358,8 +357,8 @@ root@ubuntu:~#
 > mount /home  
 
 #Проверяем наличие/отсутствие файлов созданных до/после снепшота  
-root@ubuntu:~# cat /home/mike/test  
-megafile  
-root@ubuntu:~# cat /home/mike/test2  
-cat: /home/mike/test2: No such file or directory  
-root@ubuntu:~#  
+> root@ubuntu:~# cat /home/mike/test  
+> megafile  
+> root@ubuntu:~# cat /home/mike/test2  
+> cat: /home/mike/test2: No such file or directory  
+> root@ubuntu:~#  
