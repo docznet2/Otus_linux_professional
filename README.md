@@ -263,7 +263,9 @@ unused devices: <none>
 > update-initramfs -u  
 
 #Правим fstab  
+
 > sed -i -r -e 's/([[:blank:]*]|)([^#].*)([[:blank:]*])(\/)([[:blank:]*])(.*)/\1\/dev\/mapper\/sysvg-rootfs\3\4\5\6' /etc/fstab  
+
 #Перезагружаемся... и понимаем, что 1st-stage grub (у меня BIOS инсталляция, как оказалось) ничего не знает о наших манипуляциях.  
 #Снова грузим инсталлер убунты  
 #Повторяем монтирования  
@@ -278,10 +280,12 @@ unused devices: <none>
 > exit  
 > reboot  
 ...  
+
 #Тут я вспомнил, что существует еще grub-install и оставляю /boot на lvm, удаляю раздел sde3  
 > mv /boot_backup/* /boot/  
 > rm -rdf /boot_backup/  
 > parted /dev/sde rm 3  
+
 #Создаём еще один для lvm  
 > parted /dev/sde mkpart primary 541 21000MiB  
 > pvcreate /dev/sde3  
@@ -335,18 +339,18 @@ unused devices: <none>
 > lvconvert --merge /dev/mapper/datavg-homefs_snap
 
 #и почему-то получаю:  
-  Delaying merge since origin is open.
-  Merging of snapshot datavg/homefs_snap will occur on next activation of datavg/homefs.
+>  Delaying merge since origin is open.
+>  Merging of snapshot datavg/homefs_snap will occur on next activation of datavg/homefs.
 
 #фс отмонтирована. Деактивировать LV тоже не удаётся:  
-root@ubuntu:~# lvchange /dev/datavg/homefs -an
-  Logical volume datavg/homefs contains a filesystem in use.
+>root@ubuntu:~# lvchange /dev/datavg/homefs -an  
+>  Logical volume datavg/homefs contains a filesystem in use.  
 
-#в mount тоже ничего такого
-root@ubuntu:~# mount|grep home
-root@ubuntu:~#
+#в mount тоже ничего такого  
+root@ubuntu:~# mount|grep home  
+root@ubuntu:~#  
 
-#Не знаю что можно еще сделать, перезагружаюсь...
+#Не знаю что можно еще сделать, перезагружаюсь...  
 
 > reboot  
 > ...  
