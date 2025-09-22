@@ -238,6 +238,7 @@ unused devices: <none>
 > mkdir /newroot
 
 #прицепляем к ВМ новый диск
+
 > for i in /sys/class/scsi_host/*;do echo "- - -" > ${i}/scan;done
 > pvcreate /dev/sdf
 > vgcreate sysvg /dev/sdf
@@ -245,7 +246,9 @@ unused devices: <none>
 > mkfs.ext4 /dev/mapper/sysvg-rootfs
 > mount /dev/mapper/sysvg-rootfs /newroot
 > rsync --exclude proc --progress -ar /mnt/ /newroot
+
 #и получаю "No space left on device" ибо убунта с графикой была. Что ж, накину места, под PV подключал 20Gb диск.
+
 > lvextend -r -l+100%FREE /dev/mapper/sysvg-rootfs
 > rsync --exclude proc --progress -ar /mnt/ /newroot
 > mkdir /newroot/proc
@@ -364,7 +367,7 @@ root@ubuntu:~#
 #Не знаю что можно еще сделать, перезагружаюсь...
 
 > reboot
-...
+> ...
 > mount /home
 
 #Проверяем наличие/отсутствие файлов созданных до/после снепшота
