@@ -116,9 +116,6 @@ menuentry 'Ubuntu' --class ubuntu --class gnu-linux --class gnu --class os $menu
     linux-headers-6.17.0-061700rc4-generic depends on libssl3t64 (>= 3.0.0); however:
     Package libssl3t64 is not installed.
 
-Но тем не менее, как видно в листинге выше, ОС на новом ядре запустилась.
-Можно, плиз, небольшое пояснение относително того что не поставилось (роль этого пакета) и где это гипотетически может выстрелить, если задумать всерьез такое эксплуатировать?
-
 
 
 ########################################################
@@ -226,3 +223,133 @@ md0 : active raid5 sda[5] sdc[3] sdb[1]
       2093056 blocks super 1.2 level 5, 512k chunk, algorithm 2 [3/3] [UUU]
 
 unused devices: <none>
+
+
+########################################################
+#              02 Работа с LVM
+########################################################
+
+#live-cd сессия
+> #booting from installer CD Ubuntu 22.10
+> #Switching terminal to shell (Ctrl+Alt+F3)
+> #Logging in with login ubuntu and empty passwowrd
+> sudo -i
+> mount /dev/sde3 /mnt
+> mkdir /newroot
+
+#прицепляем к ВМ новый диск
+> for i in /sys/class/scsi_host/*;do echo "- - -" > ${i}/scan;done
+> pvcreate /dev/sdf
+> vgcreate sysvg /dev/sdf
+> lvcreate -n rootfs -L8G sysvg
+> mkfs.ext4 /dev/mapper/sysvg-rootfs
+> mount /dev/mapper/sysvg-rootfs /newroot
+> rsync --exclude proc --progress -ar /mnt/ /newroot
+#и получаю "No space left on device" ибо убунта с графикой была. Что ж, накину места, под PV подключал 20Gb диск.
+> lvextend -r -l+100%FREE /dev/mapper/sysvg-rootfs
+> rsync --exclude proc --progress -ar /mnt/ /newroot
+> mkdir /newroot/proc
+
+> mount --bind /proc /newroot/proc
+> mount --bind /dev /newroot/dev
+> mount --bind /sys /newroot/sys
+> mount --bind /dev/sde2 /newroot/boot/efi
+> chroot /newroot
+> grub-mkconfig -o /boot/grub/grub.cfg
+#Обнаруживаю что initramfs-tools не был установлен
+> apt install initramfs-tools
+> update-initramfs -u
+#Правим fstab
+> sed -i -r -e 's/([[:blank:]*]|)([^#].*)([[:blank:]*])(\/)([[:blank:]*])(.*)/\1\/dev\/mapper\/sysvg-rootfs\3\4\5\6' /etc/fstab
+#Перезагружаемся... и понимаем, что 1st-stage grub (у меня BIOS инсталляция, как оказалось) ничего не знает о наших манипуляциях.
+#Снова грузим инсталлер убунты
+#Повторяем монтирования
+> mv /newroot/boot /newroot/boot_backup
+> mkdir /newroot/boot
+> mount --bind /mnt/boot /newroot/boot
+> mount /dev/sde2 /newroot/boot/efi
+> chroot /newroot
+> grub-mkconfig -o /boot/grub/grub.cfg
+> update-initramfs -u
+> exit
+> reboot
+...
+
+#Тут я вспомнил, что существует еще grub-install и оставляю /boot на lvm, удаляю раздел sde3
+> mv /boot_backup/* /boot/
+> rm -rdf /boot_backup/
+> parted /dev/sde rm 3
+
+#Создаём еще один для lvm
+> parted /dev/sde mkpart primary 541 21000MiB
+> pvcreate /dev/sde3
+> vgextend sysvg /dev/sde3
+> pvmove /dev/sdf
+> vgreduce sysvg /dev/sdf
+> pvremove /dev/sdf
+
+#Обновляем grub конфиги
+> grub-install --target=i386-pc /dev/sde
+> grub-mkconfig -o /boot/grub/grub.cfg
+
+#Добавляю 2 новых диска под PV, делаю рескан
+> for i in /sys/class/scsi_host/*;do echo "- - -" > ${i}/scan;done
+> pvcreate /dev/sdh /dev/sdg
+> vgcreate datavg /dev/sdg /dev/sdh
+
+#Мувим home
+> lvcreate -n homefs -L5G datavg
+> mkfs.ext4 /dev/mapper/datavg-homefs
+> mv /home /home_old
+> echo "/dev/mapper/datavg-homefs /home               ext4    defaults 0       1" >> /etc/fstab
+> mkdir /home
+> systemctl daemon-reload && mount /home
+> mv /home_old/* /home
+> rm -d /home_old
+
+#мувим var
+> lvcreate -n varfs -L10G -m1 datavg
+> mkfs.ext4 /dev/mapper/datavg-varfs
+> init 1
+> lsof +D /var
+> systemctl stop systemd-journald
+> mv /var /var_old
+> mkdir /var
+> echo "/dev/mapper/datavg-varfs /var             ext4    defaults 0       1" >> /etc/fstab
+> systemctl daemon-reload && mount /var
+> mv /var_old/* /var/
+> rm -rdf /var_old
+> init 5
+> systemctl start systemd-journald
+
+
+#Работа со снапшотами
+> echo megafile > /home/mike/test
+> lvcreate -L100M -s -n homefs_snap /dev/mapper/datavg-homefs
+> rm /home/mike/test
+> echo megafile2 > /home/mike/test2
+> #Разрешаю рута по ssh, выхожу из текущей сесии, блокирующей home, подключаюсь под рутом
+> umount /home
+
+> lvconvert --merge /dev/mapper/datavg-homefs_snap
+#и почему-то получаю:
+  Delaying merge since origin is open.
+  Merging of snapshot datavg/homefs_snap will occur on next activation of datavg/homefs.
+#фс отмонтирована. Деактивировать LV тоже не удаётся:
+root@ubuntu:~# lvchange /dev/datavg/homefs -an
+  Logical volume datavg/homefs contains a filesystem in use.
+#в mount тоже ничего такого
+root@ubuntu:~# mount|grep home
+root@ubuntu:~#
+
+#Не знаю что можно еще сделать, перезагружаюсь...
+> reboot
+...
+> mount /home
+#Проверяем наличие/отсутствие файлов созданных до/после снепшота
+root@ubuntu:~# cat /home/mike/test
+megafile
+root@ubuntu:~# cat /home/mike/test2
+cat: /home/mike/test2: No such file or directory
+root@ubuntu:~#
+
