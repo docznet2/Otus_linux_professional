@@ -367,7 +367,9 @@ root@ubuntu:~#
 #Не знаю что можно еще сделать, перезагружаюсь...
 
 > reboot
+
 > ...
+
 > mount /home
 
 #Проверяем наличие/отсутствие файлов созданных до/после снепшота
@@ -377,5 +379,3 @@ megafile
 root@ubuntu:~# cat /home/mike/test2
 cat: /home/mike/test2: No such file or directory
 root@ubuntu:~#
-
-123
