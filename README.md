@@ -378,3 +378,4 @@ root@ubuntu:~# cat /home/mike/test2
 cat: /home/mike/test2: No such file or directory
 root@ubuntu:~#
 
+123
