@@ -370,7 +370,7 @@ unused devices: <none>
 #Определить алгоритм с наилучшим сжатием  
 
 > mkdir -p /zpool/pool{1..4}  
-> root@ubuntu:~# wget -P /zpool/*/pglog.log https://gutenberg.org/cache/epub/2600/pg2600.converter.log  
+> root@ubuntu:~# wget -P /zpool/*/pglog.log https://gutenberg.org/cache/epub/2600/pg2600.converter.log   
 
 ----------------------------------------
 # recordsize=128k (default), sector - 4k  
