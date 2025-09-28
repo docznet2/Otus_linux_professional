@@ -362,3 +362,141 @@ unused devices: <none>
 > root@ubuntu:~# cat /home/mike/test2  
 > cat: /home/mike/test2: No such file or directory  
 > root@ubuntu:~#  
+
+
+########################################################
+#              04 ZFS
+########################################################
+#Определить алгоритм с наилучшим сжатием  
+
+> root@ubuntu:~# zpool create pool1 /dev/sda  
+> root@ubuntu:~# zpool create pool2 /dev/sdb  
+> root@ubuntu:~# zpool create pool3 /dev/sdc  
+> root@ubuntu:~# zpool create pool4 /dev/sdd  
+
+> mkdir -p /zpool/pool{1..4}
+> root@ubuntu:~# wget -P /zpool/*/pglog.log https://gutenberg.org/cache/epub/2600/pg2600.converter.log  
+
+#########
+# recordsize=128k (default), sector - 4k  
+#########
+> recordsize=128k  
+> zpool create -o ashift=12 -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
+> zpool create -o ashift=12 -O compression=lz4 -O recordsize=${recordsize} -R /zpool pool2 /dev/sdb  
+> zpool create -o ashift=12 -O compression=zle -O recordsize=${recordsize} -R /zpool pool3 /dev/sdc  
+> zpool create -o ashift=12 -O compression=gzip-9 -O recordsize=${recordsize} -R /zpool pool4 /dev/sdd  
+
+> find /zpool/ -maxdepth 1 -type d -exec cp -r /tmp/pg2600.converter.log {}/ \;  
+
+> root@ubuntu:~# zfs get all|grep compress|grep -v ref  
+> pool1  compressratio         3.35x                      -  
+> pool1  compression           zstd                       local  
+> pool2  compressratio         2.17x                      -  
+> pool2  compression           lz4                        local  
+> pool3  compressratio         1.00x                      -  
+> pool3  compression           zle                        local  
+> pool4  compressratio         3.48x                      -  
+> pool4  compression           gzip-9                     local  
+
+> zpool destroy pool1  
+> zpool destroy pool2  
+> zpool destroy pool3  
+> zpool destroy pool4  
+
+#########
+# recordsize=1M, sector - 4k  
+#########
+
+> recordsize=1M  
+> zpool create -o ashift=12 -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
+> zpool create -o ashift=12 -O compression=lz4 -O recordsize=${recordsize} -R /zpool pool2 /dev/sdb  
+> zpool create -o ashift=12 -O compression=zle -O recordsize=${recordsize} -R /zpool pool3 /dev/sdc  
+> zpool create -o ashift=12 -O compression=gzip-9 -O recordsize=${recordsize} -R /zpool pool4 /dev/sdd  
+
+> root@ubuntu:~# find /zpool/ -maxdepth 1 -type d -exec cp -r /tmp/pg2600.converter.log {}/ \;  
+
+> root@ubuntu:~# zfs get all|grep compress|grep -v ref  
+> pool1  compressratio         4.01x                      -  
+> pool1  compression           zstd                       local  
+> pool2  compressratio         2.29x                      -  
+> pool2  compression           lz4                        local  
+> pool3  compressratio         1.00x                      -  
+> pool3  compression           zle                        local  
+> pool4  compressratio         3.79x                      -  
+> pool4  compression           gzip-9                     local  
+
+> zpool destroy pool1  
+> zpool destroy pool2  
+> zpool destroy pool3  
+> zpool destroy pool4  
+
+#########
+# recordsize=128k (default), sector - 512b  
+#########
+> recordsize=128k  
+> ashift=9  
+> zpool create -o ashift=${ashift} -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
+> zpool create -o ashift=${ashift} -O compression=lz4 -O recordsize=${recordsize} -R /zpool pool2 /dev/sdb  
+> zpool create -o ashift=${ashift} -O compression=zle -O recordsize=${recordsize} -R /zpool pool3 /dev/sdc  
+> zpool create -o ashift=${ashift} -O compression=gzip-9 -O recordsize=${recordsize} -R /zpool pool4 /dev/sdd  
+
+> find /zpool/ -maxdepth 1 -type d -exec cp -r /tmp/pg2600.converter.log {}/ \;  
+
+> zfs get all|grep compress|grep -v ref  
+> pool1  compressratio         3.20x                      -  
+> pool1  compression           zstd                       local  
+> pool2  compressratio         2.00x                      -  
+> pool2  compression           lz4                        local  
+> pool3  compressratio         1.00x                      -  
+> pool3  compression           zle                        local  
+> pool4  compressratio         3.28x                      -  
+> pool4  compression           gzip-9                     local  
+
+#Делаем вывод, что фаворит зависит от множества факторов :)  Голосую за zstd
+
+
+
+#Импортировать ФС, проверить статус
+> wget -O archive.tar.gz --no-check-certificate 'https://drive.usercontent.google.com/download?id=1MvrcEp-WgAQe57aDEzxSRalPAwbNN1Bb&export=download' 
+> tar -xzvf archive.tar.gz
+> zpool import -d zpoolexport/ otus  
+> zfs umount otus/hometask2  
+> zfs umount otus  
+> zfs set mountpoint=/zpool/otus otus  
+> zfs mount otus  
+> zfs mount otus/hometask2  
+
+> root@ubuntu:/zpool/pool3# df -Th|grep otus  
+> otus           zfs    350M  128K  350M   1% /zpool/otus  
+> otus/hometask2 zfs    352M  2,0M  350M   1% /zpool/otus/hometask2  
+
+> root@ubuntu:/# zpool status otus
+>   pool: otus
+>   state: ONLINE
+> status: Some supported and requested features are not enabled on the pool.
+>         The pool can still be used, but some features are unavailable.
+> action: Enable all features using 'zpool upgrade'. Once this is done,
+>         the pool may no longer be accessible by software that does not support
+>         the features. See zpool-features(7) for details.
+> config:
+> 
+>         NAME                    STATE     READ WRITE CKSUM
+>         otus                    ONLINE       0     0     0
+>           mirror-0              ONLINE       0     0     0
+>             /zpoolexport/filea  ONLINE       0     0     0
+>             /zpoolexport/fileb  ONLINE       0     0     0
+
+
+#Работа со снапшотом
+> wget -O otus_task2.file --no-check-certificate 'https://drive.usercontent.google.com/download?id=1wgxjih8YZ-cqLqaZVa0lA3h3Y029c3oI&export=download'  
+
+> root@ubuntu:/# file /otus_task2.file  
+> /otus_task2.file: ZFS snapshot (little-endian machine), version 17, type: ZFS, destination GUID: FFFFFFB5 FFFFFFB7 FFFFFFB8 78 35 30 FFFFFF92 FFFFFFFC, name: 'otus/test@today'  
+
+> zfs receive otus/hometask2_test@snap1 < /otus_task2.file  
+> root@ubuntu:/# find /zpool/otus/hometask2_test/ -type f -name '*secret*'  
+> /zpool/otus/hometask2_test/task1/file_mess/8.2 El secreto de sus ojos (2009).mp4  
+> /zpool/otus/hometask2_test/task1/file_mess/secret_message  
+>
+> root@ubuntu:/# cat /zpool/otus/hometask2_test/task1/file_mess/secret_message  
+> https://otus.ru/lessons/linux-hl/  
