@@ -369,11 +369,6 @@ unused devices: <none>
 ########################################################  
 #Определить алгоритм с наилучшим сжатием  
 
-> root@ubuntu:~# zpool create pool1 /dev/sda  
-> root@ubuntu:~# zpool create pool2 /dev/sdb  
-> root@ubuntu:~# zpool create pool3 /dev/sdc  
-> root@ubuntu:~# zpool create pool4 /dev/sdd  
-
 > mkdir -p /zpool/pool{1..4}
 > root@ubuntu:~# wget -P /zpool/*/pglog.log https://gutenberg.org/cache/epub/2600/pg2600.converter.log  
 
@@ -499,3 +494,6 @@ unused devices: <none>
 >
 > root@ubuntu:/# cat /zpool/otus/hometask2_test/task1/file_mess/secret_message  
 > https://otus.ru/lessons/linux-hl/  
+
+
+
