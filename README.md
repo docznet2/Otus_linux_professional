@@ -377,7 +377,7 @@ unused devices: <none>
 > mkdir -p /zpool/pool{1..4}
 > root@ubuntu:~# wget -P /zpool/*/pglog.log https://gutenberg.org/cache/epub/2600/pg2600.converter.log  
 
-#########
+----------------------------------------
 # recordsize=128k (default), sector - 4k  
 
 > recordsize=128k  
@@ -403,8 +403,8 @@ unused devices: <none>
 > zpool destroy pool3  
 > zpool destroy pool4  
 
-#########
-# recordsize=1M, sector - 4k  
+----------------------------------------
+# recordsize=1M, sector - 4k  #
 
 > recordsize=1M  
 > zpool create -o ashift=12 -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
@@ -429,7 +429,7 @@ unused devices: <none>
 > zpool destroy pool3  
 > zpool destroy pool4  
 
-#########
+----------------------------------------
 # recordsize=128k (default), sector - 512b  
 
 > recordsize=128k  
