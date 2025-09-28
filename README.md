@@ -403,8 +403,8 @@ unused devices: <none>
 > zpool destroy pool3  
 > zpool destroy pool4  
 
-----------------------------------------
-# recordsize=1M, sector - 4k  #
+
+# recordsize=1M, sector - 4k  
 
 > recordsize=1M  
 > zpool create -o ashift=12 -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
@@ -429,7 +429,7 @@ unused devices: <none>
 > zpool destroy pool3  
 > zpool destroy pool4  
 
-----------------------------------------
+
 # recordsize=128k (default), sector - 512b  
 
 > recordsize=128k  
