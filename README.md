@@ -1,8 +1,8 @@
 # Otus_linux_professional
 
-########################################################
+########################################################  
 #              01 Обновление ядра системы
-########################################################
+########################################################  
 > bash -x /tmp/kernupd.sh 2>&1 | tee /out.log
 
 ==============================================================
@@ -118,9 +118,9 @@ menuentry 'Ubuntu' --class ubuntu --class gnu-linux --class gnu --class os $menu
 
 
 
-########################################################
+########################################################  
 #              02 Работа с mdadm
-########################################################
+########################################################  
 
 
 #raid
@@ -225,9 +225,9 @@ md0 : active raid5 sda[5] sdc[3] sdb[1]
 unused devices: <none>
 
 
-########################################################
+########################################################  
 #              02 Работа с LVM
-########################################################
+########################################################  
 
 #live-cd сессия  
 #booting from installer CD Ubuntu 22.10  
@@ -364,9 +364,9 @@ unused devices: <none>
 > root@ubuntu:~#  
 
 
-########################################################
+########################################################  
 #              04 ZFS
-########################################################
+########################################################  
 #Определить алгоритм с наилучшим сжатием  
 
 > root@ubuntu:~# zpool create pool1 /dev/sda  
@@ -379,7 +379,7 @@ unused devices: <none>
 
 #########
 # recordsize=128k (default), sector - 4k  
-#########
+
 > recordsize=128k  
 > zpool create -o ashift=12 -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
 > zpool create -o ashift=12 -O compression=lz4 -O recordsize=${recordsize} -R /zpool pool2 /dev/sdb  
@@ -405,7 +405,6 @@ unused devices: <none>
 
 #########
 # recordsize=1M, sector - 4k  
-#########
 
 > recordsize=1M  
 > zpool create -o ashift=12 -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
@@ -432,7 +431,7 @@ unused devices: <none>
 
 #########
 # recordsize=128k (default), sector - 512b  
-#########
+
 > recordsize=128k  
 > ashift=9  
 > zpool create -o ashift=${ashift} -O compression=zstd -O recordsize=${recordsize} -R /zpool pool1 /dev/sda  
