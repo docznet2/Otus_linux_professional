@@ -519,7 +519,7 @@ unused devices: <none>
 #Client:  
 > root@debian:\~# apt install nfs-common  
 > root@debian:\~# mkdir /nfs1  
-> root@debian:\~# echo '192.168.206.130:/nfsroot/nfs1       /nfs1    nfs     rw,hard,intr,lock,noexec,nosuid,nfsvers=3,proto=tcp,retrans=10,x-systemd.mount-timeout=15s,_netdev     0       0' >> /etc/fstab  
+> root@debian:\~# echo '192.168.206.130:/nfsroot/nfs1       /nfs1    nfs     rw,hard,intr,lock,noexec,nosuid,nfsvers=3,proto=tcp,retrans=10,x-systemd.mount-timeout=15s,auto,_netdev     0       0' >> /etc/fstab  
 > root@debian:\~# systemctl daemon-reload  
 > root@debian:\~# mount /nfs1  
 > root@debian:\~# df -Th|grep nfs  
