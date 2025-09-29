@@ -535,3 +535,4 @@ unused devices: <none>
 > root@ubuntu:/nfsroot/nfs1# showmount -a  
 > All mount points on ubuntu:  
 > 192.168.206.137:/nfsroot/nfs1  
+
