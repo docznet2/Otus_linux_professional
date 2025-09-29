@@ -503,33 +503,33 @@ unused devices: <none>
 ########################################################  
 
 #Server:  
-> root@ubuntu:~# apt install nfs-kernel-server nfs-common  
-> root@ubuntu:~# mkdir -p /nfsroot/nfs1/upload  
+> root@ubuntu:\~# apt install nfs-kernel-server nfs-common  
+> root@ubuntu:\~# mkdir -p /nfsroot/nfs1/upload  
 
-> root@ubuntu:~# chown -R mike:mike /nfsroot/  
-> root@ubuntu:~# chown -R nobody:nogroup /nfsroot/nfs1/upload  
-> root@ubuntu:~# chmod -R 0755 /nfsroot/  
-> root@ubuntu:~# chmod -R 0777 /nfsroot/nfs1/upload  
+> root@ubuntu:\~# chown -R mike:mike /nfsroot/  
+> root@ubuntu:\~# chown -R nobody:nogroup /nfsroot/nfs1/upload  
+> root@ubuntu:\~# chmod -R 0755 /nfsroot/  
+> root@ubuntu:\~# chmod -R 0777 /nfsroot/nfs1/upload  
 > 
-> root@ubuntu:~# echo '/nfsroot/nfs1 192.168.206.137(rw,root_squash,sync,nohide)' >> /etc/exports  
-> root@ubuntu:~# systemctl reload nfs-server.service  
+> root@ubuntu:\~# echo '/nfsroot/nfs1 192.168.206.137(rw,root_squash,sync,nohide)' >> /etc/exports  
+> root@ubuntu:\~# systemctl reload nfs-server.service  
 
 
 
 #Client:  
-> root@debian:~# apt install nfs-common  
-> root@debian:~# mkdir /nfs1  
-> root@debian:~# echo '192.168.206.130:/nfsroot/nfs1       /nfs1    nfs     rw,hard,intr,lock,noexec,nosuid,nfsvers=3,proto=tcp,retrans=10,x-systemd.mount-timeout=15s,_netdev     0       0' >> /etc/fstab  
-> root@debian:~# systemctl daemon-reload  
-> root@debian:~# mount /nfs1  
-> root@debian:~# df -Th|grep nfs  
+> root@debian:\~# apt install nfs-common  
+> root@debian:\~# mkdir /nfs1  
+> root@debian:\~# echo '192.168.206.130:/nfsroot/nfs1       /nfs1    nfs     rw,hard,intr,lock,noexec,nosuid,nfsvers=3,proto=tcp,retrans=10,x-systemd.mount-timeout=15s,_netdev     0       0' >> /etc/fstab  
+> root@debian:\~# systemctl daemon-reload  
+> root@debian:\~# mount /nfs1  
+> root@debian:\~# df -Th|grep nfs  
 > 192.168.206.130:/nfsroot/nfs1 nfs        39G   15G   22G  41% /nfs1  
 
-> root@debian:~# echo hello > /nfs1/test  
+> root@debian:\~# echo hello > /nfs1/test  
 > -bash: /nfs1/test: Permission denied  
-> root@debian:~# echo hello > /nfs1/upload/test  
-> root@debian:~#  
-> root@debian:~# reboot  
+> root@debian:\~# echo hello > /nfs1/upload/test  
+> root@debian:\~#  
+> root@debian:\~# reboot  
 
 #Server  
 > root@ubuntu:/nfsroot/nfs1# showmount -a  
