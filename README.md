@@ -504,6 +504,8 @@ unused devices: <none>
 
 #Server:  
 > root@ubuntu:~# apt install nfs-kernel-server nfs-common  
+
+> root@ubuntu:~# apt install nfs-kernel-server nfs-common  
 > root@ubuntu:~# mkdir -p /nfsroot/nfs1/upload  
 
 > root@ubuntu:~# chown -R mike:mike /nfsroot/  
