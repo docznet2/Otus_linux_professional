@@ -542,35 +542,35 @@ unused devices: <none>
 #      08 Загрузка системы, работа с загрузчиком
 ########################################################  
 #Включить отображение меню Grub.  
-> (grep -qixE '^(#|[[:blank:]]*)(GRUB_TIMEOUT_STYLE)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)' /etc/default/grub && sed -r -i -e 's/^(#|[[:blank:]]*)(GRUB_TIMEOUT_STYLE)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)/\1\2\3\4\5menu/' /etc/default/grub) || echo GRUB_TIMEOUT_STYLE=menu >> /etc/default/grub  
-> (grep -qixE '^(#|[[:blank:]]*)(GRUB_TIMEOUT)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)' /etc/default/grub && sed -r -i -e 's/^(#|[[:blank:]]*)(GRUB_TIMEOUT)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)/\1\2\3\4\510/' /etc/default/grub) || echo GRUB_TIMEOUT=10 >> /etc/default/grub  
+(grep -qixE '^(#|[[:blank:]]*)(GRUB_TIMEOUT_STYLE)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)' /etc/default/grub && sed -r -i -e 's/^(#|[[:blank:]]*)(GRUB_TIMEOUT_STYLE)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)/\1\2\3\4\5menu/' /etc/default/grub) || echo GRUB_TIMEOUT_STYLE=menu >> /etc/default/grub  
+(grep -qixE '^(#|[[:blank:]]*)(GRUB_TIMEOUT)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)' /etc/default/grub && sed -r -i -e 's/^(#|[[:blank:]]*)(GRUB_TIMEOUT)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)/\1\2\3\4\510/' /etc/default/grub) || echo GRUB_TIMEOUT=10 >> /etc/default/grub  
 
 #Готовимся к переименовываем LV  
-> new_root_lvname=roofs_renamed  
-> new_root_vgname=sysvg  
-> dm_device=$(readlink -f $(df /|tail -n1|awk '{print $1}'))  
-> mapper_olddev=$(df /|tail -n1|awk '{print $1}')  
+new_root_lvname=roofs_renamed  
+new_root_vgname=sysvg  
+dm_device=$(readlink -f $(df /|tail -n1|awk '{print $1}'))  
+mapper_olddev=$(df /|tail -n1|awk '{print $1}')  
 
 #Узнаем vg+lv на котором размещен / (root)  
-> while IFS=$'/' read -a line;do  
->       if [[ -n $(lvs -a -S "lv_name=${line[3]} && vg_name=${line[2]}") ]];then  
->             old_vgname="${line[2]}"  
->             old_lvname="${line[3]}"  
->             break   
->       fi 
-> done <<< $(find -L /dev -mindepth 2 -maxdepth 2 -samefile $(df /|tail -n1|awk '{print $1}') 2>/dev/null|grep -v -e '/dev/mapper')  
+while IFS=$'/' read -a line;do  
+      if [[ -n $(lvs -a -S "lv_name=${line[3]} && vg_name=${line[2]}") ]];then  
+            old_vgname="${line[2]}"  
+            old_lvname="${line[3]}"  
+            break   
+      fi 
+done <<< $(find -L /dev -mindepth 2 -maxdepth 2 -samefile $(df /|tail -n1|awk '{print $1}') 2>/dev/null|grep -v -e '/dev/mapper')  
 
 #Выполняем 
-> vgrename ${old_vgname} ${new_root_vgname}  
-> lvrename /dev/${new_root_vgname}/${old_lvname} ${new_root_lvname}  
-> if [[ "$?" == "0" ]];then  
->       new_mapper_device=$(find -L /dev/mapper -samefile  $dm_device)  
->       sed -i -e "s~${old_vgname}~${new_root_vgname}~" /etc/fstab  
->       sed -i -r -e "s~([[:blank:]*]|)([^#].*)([[:blank:]*])(/)([[:blank:]*])(.*)~\1\\${new_mapper_device}\3\4\5\6~" /etc/fstab  
->       sed -i -e "s~${mapper_olddev}~${new_mapper_device}~" /boot/grub/grub.cfg  
-> 
->       update-initramfs -u  
-> fi  
+vgrename ${old_vgname} ${new_root_vgname}  
+lvrename /dev/${new_root_vgname}/${old_lvname} ${new_root_lvname}  
+if [[ "$?" == "0" ]];then  
+      new_mapper_device=$(find -L /dev/mapper -samefile  $dm_device)  
+      sed -i -e "s~${old_vgname}~${new_root_vgname}~" /etc/fstab  
+      sed -i -r -e "s~([[:blank:]*]|)([^#].*)([[:blank:]*])(/)([[:blank:]*])(.*)~\1\\${new_mapper_device}\3\4\5\6~" /etc/fstab  
+      sed -i -e "s~${mapper_olddev}~${new_mapper_device}~" /boot/grub/grub.cfg  
+
+      update-initramfs -u  
+fi  
 
 #Проверяем корректность загрузки  
-> reboot  
+reboot  
