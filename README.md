@@ -545,7 +545,7 @@ unused devices: <none>
 (grep -qixE '^(#|[[:blank:]]*)(GRUB_TIMEOUT_STYLE)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)' /etc/default/grub && sed -r -i -e 's/^(#|[[:blank:]]*)(GRUB_TIMEOUT_STYLE)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)/\1\2\3\4\5menu/' /etc/default/grub) || echo GRUB_TIMEOUT_STYLE=menu >> /etc/default/grub  
 (grep -qixE '^(#|[[:blank:]]*)(GRUB_TIMEOUT)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)' /etc/default/grub && sed -r -i -e 's/^(#|[[:blank:]]*)(GRUB_TIMEOUT)([[:blank:]]*|)(=)([[:blank:]]*|)(.*)/\1\2\3\4\510/' /etc/default/grub) || echo GRUB_TIMEOUT=10 >> /etc/default/grub  
 
-#Готовимся к переименовываем LV  
+#Готовимся к переименованию LV  
 new_root_lvname=roofs_renamed  
 new_root_vgname=sysvg  
 dm_device=$(readlink -f $(df /|tail -n1|awk '{print $1}'))  
