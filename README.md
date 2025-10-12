@@ -606,7 +606,7 @@ reboot
 > EOF  
 >   
 >   
-chmod +x /opt/watchlog.sh  
+> chmod +x /opt/watchlog.sh  
 >   
 > #Создадим службу и таймер  
 > cat << EOF > /etc/systemd/system/watchlog.service  
@@ -665,7 +665,7 @@ root@ubuntu:~#
 #2. Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта    
 #Служба    
   root@ubuntu:~# systemctl cat spawn-fcgi.service    
-> # /etc/systemd/system/spawn-fcgi.service    
+> #/etc/systemd/system/spawn-fcgi.service    
 > [Unit]    
 > Description=Run php-cgi as app server    
 >   
@@ -680,8 +680,8 @@ root@ubuntu:~#
 > WantedBy=multi-user.target    
   root@ubuntu:~#    
 >   
-> #Конфиг службы    
-> root@ubuntu:~# cat /etc/default/phpfastcgi    
+#Конфиг службы    
+root@ubuntu:~# cat /etc/default/phpfastcgi    
 > spawnfcgi="/usr/bin/spawn-fcgi"    
 > php_cgi="/usr/bin/php-cgi"    
 > prog=$(basename $php_cgi)    
@@ -704,11 +704,11 @@ root@ubuntu:~#
 > server_childs=5    
 > pidfile="/var/run/php_cgi.pid"    
 > socket="/var/run/php-fcgi.sock"    
->   
-  #Запускаем службу    
-  root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service    
-  #Проверяем статус    
-  root@ubuntu:~# systemctl status spawn-fcgi.service    
+
+#Запускаем службу    
+root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service    
+#Проверяем статус    
+root@ubuntu:~# systemctl status spawn-fcgi.service    
 > ● spawn-fcgi.service - Run php-cgi as app server    
      > Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; preset: enabled)    
      > Active: active (running) since Sun 2025-10-12 20:29:25 MSK; 5s ago    
@@ -730,7 +730,7 @@ root@ubuntu:~#
 > #Убеждаемся что порт прослушивается    
   root@ubuntu:~# netstat -tulpn|grep 9000    
 > tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      21403/php-cgi    
-  root@ubuntu:~#    
+root@ubuntu:~#    
   
 #################################################### 
 #3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.    
