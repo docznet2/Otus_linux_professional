@@ -663,76 +663,76 @@ root@ubuntu:~#
 ###############################################################################################
 #2. Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта  
 #Служба  
-root@ubuntu:~# systemctl cat spawn-fcgi.service  
-# /etc/systemd/system/spawn-fcgi.service  
-[Unit]  
-Description=Run php-cgi as app server  
-
-
-[Service]  
-Type=simple  
-PIDFile=/var/run/php_cgi.pid  
-EnvironmentFile=/etc/default/phpfastcgi  
-ExecStart=/usr/bin/spawn-fcgi -a ${server_ip} -p ${server_port} -u ${server_user} -g ${server_group} -P ${pidfile} -C ${server_childs} -f ${php_cgi}  
-
-[Install]  
-WantedBy=multi-user.target  
-root@ubuntu:~#  
-
-#Конфиг службы  
-root@ubuntu:~# cat /etc/default/phpfastcgi  
-spawnfcgi="/usr/bin/spawn-fcgi"  
-php_cgi="/usr/bin/php-cgi"  
-prog=$(basename $php_cgi)  
-server_ip=127.0.0.1  
-server_port=9000  
-server_user=www-data  
-server_group=www-data  
-server_childs=5  
-pidfile="/var/run/php_cgi.pid"  
-socket="/var/run/php-fcgi.sock"  
-
-root@ubuntu:~# cat /etc/default/phpfastcgi  
-spawnfcgi="/usr/bin/spawn-fcgi"  
-php_cgi="/usr/bin/php-cgi"  
-prog=$(basename $php_cgi)  
-server_ip=127.0.0.1  
-server_port=9000  
-server_user=www-data  
-server_group=www-data  
-server_childs=5  
-pidfile="/var/run/php_cgi.pid"  
-socket="/var/run/php-fcgi.sock"  
-
-#Запускаем службу  
-root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service  
-#Проверяем статус  
-root@ubuntu:~# systemctl status spawn-fcgi.service  
-● spawn-fcgi.service - Run php-cgi as app server  
-     Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; preset: enabled)  
-     Active: active (running) since Sun 2025-10-12 20:29:25 MSK; 5s ago  
-   Main PID: 21403 (php-cgi)  
-      Tasks: 6 (limit: 2181)  
-     Memory: 7.4M  
-        CPU: 6ms  
-     CGroup: /system.slice/spawn-fcgi.service  
-             ├─21403 /usr/bin/php-cgi  
-             ├─21404 /usr/bin/php-cgi  
-             ├─21405 /usr/bin/php-cgi    
-             ├─21406 /usr/bin/php-cgi
-             ├─21407 /usr/bin/php-cgi  
-             └─21408 /usr/bin/php-cgi  
-
-окт 12 20:29:25 ubuntu systemd[1]: Started Run php-cgi as app server.  
-окт 12 20:29:25 ubuntu spawn-fcgi[21402]: spawn-fcgi: child spawned successfully: PID: 21403  
-
-#Убеждаемся что порт прослушивается  
-root@ubuntu:~# netstat -tulpn|grep 9000  
-tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      21403/php-cgi  
-root@ubuntu:~#  
+> root@ubuntu:~# systemctl cat spawn-fcgi.service  
+> # /etc/systemd/system/spawn-fcgi.service  
+> [Unit]  
+> Description=Run php-cgi as app server  
+> 
+> 
+> [Service]  
+> Type=simple  
+> PIDFile=/var/run/php_cgi.pid  
+> EnvironmentFile=/etc/default/phpfastcgi  
+> ExecStart=/usr/bin/spawn-fcgi -a ${server_ip} -p ${server_port} -u ${server_user} -g ${server_group} -P ${pidfile} -C ${server_childs} -f ${php_cgi}  
+> 
+> [Install]  
+> WantedBy=multi-user.target  
+> root@ubuntu:~#  
+> 
+> #Конфиг службы  
+> root@ubuntu:~# cat /etc/default/phpfastcgi  
+> spawnfcgi="/usr/bin/spawn-fcgi"  
+> php_cgi="/usr/bin/php-cgi"  
+> prog=$(basename $php_cgi)  
+> server_ip=127.0.0.1  
+> server_port=9000  
+> server_user=www-data  
+> server_group=www-data  
+> server_childs=5  
+> pidfile="/var/run/php_cgi.pid"  
+> socket="/var/run/php-fcgi.sock"  
+> 
+> root@ubuntu:~# cat /etc/default/phpfastcgi  
+> spawnfcgi="/usr/bin/spawn-fcgi"  
+> php_cgi="/usr/bin/php-cgi"  
+> prog=$(basename $php_cgi)  
+> server_ip=127.0.0.1  
+> server_port=9000  
+> server_user=www-data  
+> server_group=www-data  
+> server_childs=5  
+> pidfile="/var/run/php_cgi.pid"  
+> socket="/var/run/php-fcgi.sock"  
+> 
+> #Запускаем службу  
+> root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service  
+> #Проверяем статус  
+> root@ubuntu:~# systemctl status spawn-fcgi.service  
+> ● spawn-fcgi.service - Run php-cgi as app server  
+     > Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; preset: enabled)  
+     > Active: active (running) since Sun 2025-10-12 20:29:25 MSK; 5s ago  
+   > Main PID: 21403 (php-cgi)  
+      > Tasks: 6 (limit: 2181)  
+     > Memory: 7.4M  
+        > CPU: 6ms  
+     > CGroup: /system.slice/spawn-fcgi.service  
+             > ├─21403 /usr/bin/php-cgi  
+             > ├─21404 /usr/bin/php-cgi  
+             > ├─21405 /usr/bin/php-cgi    
+             > ├─21406 /usr/bin/php-cgi
+             > ├─21407 /usr/bin/php-cgi  
+             > └─21408 /usr/bin/php-cgi  
+> 
+> окт 12 20:29:25 ubuntu systemd[1]: Started Run php-cgi as app server.  
+> окт 12 20:29:25 ubuntu spawn-fcgi[21402]: spawn-fcgi: child spawned successfully: PID: 21403  
+> 
+> #Убеждаемся что порт прослушивается  
+> root@ubuntu:~# netstat -tulpn|grep 9000  
+> tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      21403/php-cgi  
+> root@ubuntu:~#  
 
 ###############################################################################################  
-> 3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.  
+#3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.  
 
 > root@ubuntu:/etc/nginx# systemctl status nginx@inst*  
 > ● nginx@inst2.service - A high performance web server and a reverse proxy server  
