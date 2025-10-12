@@ -583,87 +583,88 @@ reboot
 
 ###############################################################################################
 #1. Написать service, который будет раз в 30 секунд мониторить лог на предмет наличия ключевого слова (файл лога и ключевое слово должны задаваться в /etc/default).
+#Скрипт для развёртывания:
 
-#Конфиг-файл для службы
-cat << EOF > /etc/default/watchlog
-wrd1=fail
-log=/var/log/auth.log
-EOF
-
-#Исполняемая часть службы
-cat << EOF > /opt/watchlog.sh
-#!/bin/bash
-wrd1=\$1
-log=\$2
-
-#grep -qi fail \${log} && echo logger "\$(date): Achtung! Keyword has been found in log."
-#Скучно, будем сразу писать найденную строку по ключевому слову!
-
-grep -i \${wrd1} \${log}|while read -r line;do
-        logger "\$(date): Achtung! Keyword has been found in log. Found in string: \$line"
-done
-EOF
-
-
+> #Конфиг-файл для службы
+> cat << EOF > /etc/default/watchlog
+> wrd1=fail
+> log=/var/log/auth.log
+> EOF
+> 
+> #Исполняемая часть службы
+> cat << EOF > /opt/watchlog.sh
+> #!/bin/bash
+> wrd1=\$1
+> log=\$2
+> 
+> #grep -qi fail \${log} && echo logger "\$(date): Achtung! Keyword has been found in log."
+> #Скучно, будем сразу писать найденную строку по ключевому слову!
+> 
+> grep -i \${wrd1} \${log}|while read -r line;do
+>         logger "\$(date): Achtung! Keyword has been found in log. Found in string: \$line"
+> done
+> EOF
+> 
+> 
 chmod +x /opt/watchlog.sh
-
-#Создадим службу и таймер
-cat << EOF > /etc/systemd/system/watchlog.service
-[Unit]
-Description=Log checker
-
-[Service]
-Type=oneshot
-EnvironmentFile=/etc/default/watchlog
-ExecStart=/opt/watchlog.sh \$wrd1 \$log
-EOF
-
-cat << EOF > /etc/systemd/system/watchlog.timer
-[Unit]
-Description=Run watchlog script every 5 second
-
-[Timer]
-# Run every 5 second
-OnUnitActiveSec=5
-Unit=watchlog.service
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-
+> 
+> #Создадим службу и таймер
+> cat << EOF > /etc/systemd/system/watchlog.service
+> [Unit]
+> Description=Log checker
+> 
+> [Service]
+> Type=oneshot
+> EnvironmentFile=/etc/default/watchlog
+> ExecStart=/opt/watchlog.sh \$wrd1 \$log
+> EOF
+> 
+> cat << EOF > /etc/systemd/system/watchlog.timer
+> [Unit]
+> Description=Run watchlog script every 5 second
+> 
+> [Timer]
+> # Run every 5 second
+> OnUnitActiveSec=5
+> Unit=watchlog.service
+> 
+> [Install]
+> WantedBy=multi-user.target
+> EOF
+> 
+> 
 systemctl daemon-reload
 systemctl enable watchlog.timer
 systemctl start watchlog.timer
 exit
-
-
-...
-Приводим в действие скрипт установки и настройки лог-чекера:
+> 
+> 
+> ...
+#Приводим в действие скрипт установки и настройки лог-чекера:
 root@ubuntu:~# date
-Вс 12 окт 2025 19:47:42 MSK
-root@ubuntu:~# /tst.sh;sleep 20;tail -n 15 /var/log/syslog
-Oct 12 19:47:10 ubuntu systemd[1]: Finished Log checker.
-Oct 12 19:47:25 ubuntu systemd[1]: Starting Log checker...
-Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root
-Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2
-Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)
-Oct 12 19:47:25 ubuntu systemd[1]: watchlog.service: Deactivated successfully.
-Oct 12 19:47:25 ubuntu systemd[1]: Finished Log checker.
-Oct 12 19:47:44 ubuntu systemd[1]: Starting Log checker...
-Oct 12 19:47:44 ubuntu systemd[1]: Reloading.
-Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root
-Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2
-Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)
-Oct 12 19:47:44 ubuntu systemd[1]: watchlog.service: Deactivated successfully.
-Oct 12 19:47:44 ubuntu systemd[1]: Finished Log checker.
-Oct 12 19:47:44 ubuntu systemd[1]: Reloading.
+> Вс 12 окт 2025 19:47:42 MSK
+> root@ubuntu:~# /tst.sh;sleep 20;tail -n 15 /var/log/syslog
+> Oct 12 19:47:10 ubuntu systemd[1]: Finished Log checker.
+> Oct 12 19:47:25 ubuntu systemd[1]: Starting Log checker...
+> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root
+> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2
+> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)
+> Oct 12 19:47:25 ubuntu systemd[1]: watchlog.service: Deactivated successfully.
+> Oct 12 19:47:25 ubuntu systemd[1]: Finished Log checker.
+> Oct 12 19:47:44 ubuntu systemd[1]: Starting Log checker...
+> Oct 12 19:47:44 ubuntu systemd[1]: Reloading.
+> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root
+> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2
+> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)
+> Oct 12 19:47:44 ubuntu systemd[1]: watchlog.service: Deactivated successfully.
+> Oct 12 19:47:44 ubuntu systemd[1]: Finished Log checker.
+> Oct 12 19:47:44 ubuntu systemd[1]: Reloading.
 root@ubuntu:~#
 
 ###############################################################################################
 #2. Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта  
 #Служба  
-> root@ubuntu:~# systemctl cat spawn-fcgi.service  
+  root@ubuntu:~# systemctl cat spawn-fcgi.service  
 > # /etc/systemd/system/spawn-fcgi.service  
 > [Unit]  
 > Description=Run php-cgi as app server  
@@ -677,7 +678,7 @@ root@ubuntu:~#
 > 
 > [Install]  
 > WantedBy=multi-user.target  
-> root@ubuntu:~#  
+  root@ubuntu:~#  
 > 
 > #Конфиг службы  
 > root@ubuntu:~# cat /etc/default/phpfastcgi  
@@ -704,10 +705,10 @@ root@ubuntu:~#
 > pidfile="/var/run/php_cgi.pid"  
 > socket="/var/run/php-fcgi.sock"  
 > 
-> #Запускаем службу  
-> root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service  
-> #Проверяем статус  
-> root@ubuntu:~# systemctl status spawn-fcgi.service  
+  #Запускаем службу  
+  root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service  
+  #Проверяем статус  
+  root@ubuntu:~# systemctl status spawn-fcgi.service  
 > ● spawn-fcgi.service - Run php-cgi as app server  
      > Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; preset: enabled)  
      > Active: active (running) since Sun 2025-10-12 20:29:25 MSK; 5s ago  
@@ -727,9 +728,9 @@ root@ubuntu:~#
 > окт 12 20:29:25 ubuntu spawn-fcgi[21402]: spawn-fcgi: child spawned successfully: PID: 21403  
 > 
 > #Убеждаемся что порт прослушивается  
-> root@ubuntu:~# netstat -tulpn|grep 9000  
+  root@ubuntu:~# netstat -tulpn|grep 9000  
 > tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      21403/php-cgi  
-> root@ubuntu:~#  
+  root@ubuntu:~#  
 
 ###############################################################################################  
 #3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.  
