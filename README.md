@@ -580,194 +580,194 @@ reboot
 ########################################################  
 #      0Инициализация системы. Systemd  
 ########################################################  
-
-###############################################################################################
-#1. Написать service, который будет раз в 30 секунд мониторить лог на предмет наличия ключевого слова (файл лога и ключевое слово должны задаваться в /etc/default).
-#Скрипт для развёртывания:
-
-> #Конфиг-файл для службы
-> cat << EOF > /etc/default/watchlog
-> wrd1=fail
-> log=/var/log/auth.log
-> EOF
-> 
-> #Исполняемая часть службы
-> cat << EOF > /opt/watchlog.sh
-> #!/bin/bash
-> wrd1=\$1
-> log=\$2
-> 
-> #grep -qi fail \${log} && echo logger "\$(date): Achtung! Keyword has been found in log."
-> #Скучно, будем сразу писать найденную строку по ключевому слову!
-> 
-> grep -i \${wrd1} \${log}|while read -r line;do
->         logger "\$(date): Achtung! Keyword has been found in log. Found in string: \$line"
-> done
-> EOF
-> 
-> 
-chmod +x /opt/watchlog.sh
-> 
-> #Создадим службу и таймер
-> cat << EOF > /etc/systemd/system/watchlog.service
-> [Unit]
-> Description=Log checker
-> 
-> [Service]
-> Type=oneshot
-> EnvironmentFile=/etc/default/watchlog
-> ExecStart=/opt/watchlog.sh \$wrd1 \$log
-> EOF
-> 
-> cat << EOF > /etc/systemd/system/watchlog.timer
-> [Unit]
-> Description=Run watchlog script every 5 second
-> 
-> [Timer]
-> # Run every 5 second
-> OnUnitActiveSec=5
-> Unit=watchlog.service
-> 
-> [Install]
-> WantedBy=multi-user.target
-> EOF
-> 
-> 
-systemctl daemon-reload
-systemctl enable watchlog.timer
-systemctl start watchlog.timer
-exit
-> 
-> 
-> ...
-#Приводим в действие скрипт установки и настройки лог-чекера:
-root@ubuntu:~# date
-> Вс 12 окт 2025 19:47:42 MSK
-> root@ubuntu:~# /tst.sh;sleep 20;tail -n 15 /var/log/syslog
-> Oct 12 19:47:10 ubuntu systemd[1]: Finished Log checker.
-> Oct 12 19:47:25 ubuntu systemd[1]: Starting Log checker...
-> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root
-> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2
-> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)
-> Oct 12 19:47:25 ubuntu systemd[1]: watchlog.service: Deactivated successfully.
-> Oct 12 19:47:25 ubuntu systemd[1]: Finished Log checker.
-> Oct 12 19:47:44 ubuntu systemd[1]: Starting Log checker...
-> Oct 12 19:47:44 ubuntu systemd[1]: Reloading.
-> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root
-> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2
-> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)
-> Oct 12 19:47:44 ubuntu systemd[1]: watchlog.service: Deactivated successfully.
-> Oct 12 19:47:44 ubuntu systemd[1]: Finished Log checker.
-> Oct 12 19:47:44 ubuntu systemd[1]: Reloading.
-root@ubuntu:~#
-
-###############################################################################################
-#2. Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта  
-#Служба  
-  root@ubuntu:~# systemctl cat spawn-fcgi.service  
-> # /etc/systemd/system/spawn-fcgi.service  
+  
+###############################################################################################  
+#1. Написать service, который будет раз в 30 секунд мониторить лог на предмет наличия ключевого слова (файл лога и ключевое слово должны задаваться в /etc/default).  
+#Скрипт для развёртывания:  
+  
+> #Конфиг-файл для службы  
+> cat << EOF > /etc/default/watchlog  
+> wrd1=fail  
+> log=/var/log/auth.log  
+> EOF  
+>   
+> #Исполняемая часть службы  
+> cat << EOF > /opt/watchlog.sh  
+> #!/bin/bash  
+> wrd1=\$1  
+> log=\$2  
+>   
+> #grep -qi fail \${log} && echo logger "\$(date): Achtung! Keyword has been found in log."  
+> #Скучно, будем сразу писать найденную строку по ключевому слову!  
+>   
+> grep -i \${wrd1} \${log}|while read -r line;do  
+>         logger "\$(date): Achtung! Keyword has been found in log. Found in string: \$line"  
+> done  
+> EOF  
+>   
+>   
+chmod +x /opt/watchlog.sh  
+>   
+> #Создадим службу и таймер  
+> cat << EOF > /etc/systemd/system/watchlog.service  
 > [Unit]  
-> Description=Run php-cgi as app server  
-> 
-> 
+> Description=Log checker  
+>   
 > [Service]  
-> Type=simple  
-> PIDFile=/var/run/php_cgi.pid  
-> EnvironmentFile=/etc/default/phpfastcgi  
-> ExecStart=/usr/bin/spawn-fcgi -a ${server_ip} -p ${server_port} -u ${server_user} -g ${server_group} -P ${pidfile} -C ${server_childs} -f ${php_cgi}  
-> 
+> Type=oneshot  
+> EnvironmentFile=/etc/default/watchlog  
+> ExecStart=/opt/watchlog.sh \$wrd1 \$log  
+> EOF  
+>   
+> cat << EOF > /etc/systemd/system/watchlog.timer  
+> [Unit]  
+> Description=Run watchlog script every 5 second  
+>   
+> [Timer]  
+> # Run every 5 second  
+> OnUnitActiveSec=5  
+> Unit=watchlog.service  
+>   
 > [Install]  
 > WantedBy=multi-user.target  
-  root@ubuntu:~#  
-> 
-> #Конфиг службы  
-> root@ubuntu:~# cat /etc/default/phpfastcgi  
-> spawnfcgi="/usr/bin/spawn-fcgi"  
-> php_cgi="/usr/bin/php-cgi"  
-> prog=$(basename $php_cgi)  
-> server_ip=127.0.0.1  
-> server_port=9000  
-> server_user=www-data  
-> server_group=www-data  
-> server_childs=5  
-> pidfile="/var/run/php_cgi.pid"  
-> socket="/var/run/php-fcgi.sock"  
-> 
-> root@ubuntu:~# cat /etc/default/phpfastcgi  
-> spawnfcgi="/usr/bin/spawn-fcgi"  
-> php_cgi="/usr/bin/php-cgi"  
-> prog=$(basename $php_cgi)  
-> server_ip=127.0.0.1  
-> server_port=9000  
-> server_user=www-data  
-> server_group=www-data  
-> server_childs=5  
-> pidfile="/var/run/php_cgi.pid"  
-> socket="/var/run/php-fcgi.sock"  
-> 
-  #Запускаем службу  
-  root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service  
-  #Проверяем статус  
-  root@ubuntu:~# systemctl status spawn-fcgi.service  
-> ● spawn-fcgi.service - Run php-cgi as app server  
-     > Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; preset: enabled)  
-     > Active: active (running) since Sun 2025-10-12 20:29:25 MSK; 5s ago  
-   > Main PID: 21403 (php-cgi)  
-      > Tasks: 6 (limit: 2181)  
-     > Memory: 7.4M  
-        > CPU: 6ms  
-     > CGroup: /system.slice/spawn-fcgi.service  
-             > ├─21403 /usr/bin/php-cgi  
-             > ├─21404 /usr/bin/php-cgi  
-             > ├─21405 /usr/bin/php-cgi    
-             > ├─21406 /usr/bin/php-cgi
-             > ├─21407 /usr/bin/php-cgi  
-             > └─21408 /usr/bin/php-cgi  
-> 
-> окт 12 20:29:25 ubuntu systemd[1]: Started Run php-cgi as app server.  
-> окт 12 20:29:25 ubuntu spawn-fcgi[21402]: spawn-fcgi: child spawned successfully: PID: 21403  
-> 
-> #Убеждаемся что порт прослушивается  
-  root@ubuntu:~# netstat -tulpn|grep 9000  
-> tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      21403/php-cgi  
-  root@ubuntu:~#  
-
+> EOF  
+>   
+>   
+systemctl daemon-reload  
+systemctl enable watchlog.timer  
+systemctl start watchlog.timer  
+exit  
+>   
+>   
+> ...  
+#Приводим в действие скрипт установки и настройки лог-чекера:  
+root@ubuntu:~# date  
+> Вс 12 окт 2025 19:47:42 MSK  
+> root@ubuntu:~# /tst.sh;sleep 20;tail -n 15 /var/log/syslog  
+> Oct 12 19:47:10 ubuntu systemd[1]: Finished Log checker.  
+> Oct 12 19:47:25 ubuntu systemd[1]: Starting Log checker...  
+> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root  
+> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2  
+> Oct 12 19:47:25 ubuntu root: Вс 12 окт 2025 19:47:25 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)  
+> Oct 12 19:47:25 ubuntu systemd[1]: watchlog.service: Deactivated successfully.  
+> Oct 12 19:47:25 ubuntu systemd[1]: Finished Log checker.  
+> Oct 12 19:47:44 ubuntu systemd[1]: Starting Log checker...  
+> Oct 12 19:47:44 ubuntu systemd[1]: Reloading.  
+> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:40 ubuntu sshd[7296]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=192.168.206.1  user=root  
+> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 18:51:43 ubuntu sshd[7296]: Failed password for root from 192.168.206.1 port 56289 ssh2  
+> Oct 12 19:47:44 ubuntu root: Вс 12 окт 2025 19:47:44 MSK: Achtung! Keyword has been found in log. Found in string: Oct 12 19:07:18 ubuntu dbus-daemon[3349]: [system] Failed to activate service 'org.bluez': timed out (service_start_timeout=25000ms)  
+> Oct 12 19:47:44 ubuntu systemd[1]: watchlog.service: Deactivated successfully.  
+> Oct 12 19:47:44 ubuntu systemd[1]: Finished Log checker.  
+> Oct 12 19:47:44 ubuntu systemd[1]: Reloading.  
+root@ubuntu:~#  
+  
 ###############################################################################################  
-#3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.  
-
-> root@ubuntu:/etc/nginx# systemctl status nginx@inst*  
-> ● nginx@inst2.service - A high performance web server and a reverse proxy server  
->      Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)  
->      Active: active (running) since Sun 2025-10-12 21:01:29 MSK; 47s ago  
->        Docs: man:nginx(8)  
->    Main PID: 3010 (nginx)  
-      Tasks: 3 (limit: 2181)  
->      Memory: 3.1M  
-        CPU: 9ms  
-     CGroup: /system.slice/system-nginx.slice/nginx@inst2.service  
->              ├─3010 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst2.conf"  
-             ├─3011 "nginx: worker process"  
-             └─3012 "nginx: worker process"  
-
-> окт 12 21:01:29 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...  
-> окт 12 21:01:29 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.  
-
-> ● nginx@inst1.service - A high performance web server and a reverse proxy server  
->      Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)  
->      Active: active (running) since Sun 2025-10-12 21:01:27 MSK; 48s ago  
->        Docs: man:nginx(8)  
->    Main PID: 3003 (nginx)  
-      Tasks: 3 (limit: 2181)  
->      Memory: 3.1M  
-        CPU: 9ms  
-     CGroup: /system.slice/system-nginx.slice/nginx@inst1.service  
->              ├─3003 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst1.conf"  
-             ├─3004 "nginx: worker process"  
-             └─3005 "nginx: worker process"  
-
-> окт 12 21:01:27 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...  
-> окт 12 21:01:27 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.  
-
-root@ubuntu:/etc/nginx# netstat -tulpn|grep -i 808  
-> tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      3003/nginx: master  
-> tcp        0      0 0.0.0.0:8081            0.0.0.0:*               LISTEN      3010/nginx: master  
+#2. Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта    
+#Служба    
+  root@ubuntu:~# systemctl cat spawn-fcgi.service    
+> # /etc/systemd/system/spawn-fcgi.service    
+> [Unit]    
+> Description=Run php-cgi as app server    
+>   
+>   
+> [Service]    
+> Type=simple    
+> PIDFile=/var/run/php_cgi.pid    
+> EnvironmentFile=/etc/default/phpfastcgi    
+> ExecStart=/usr/bin/spawn-fcgi -a ${server_ip} -p ${server_port} -u ${server_user} -g ${server_group} -P ${pidfile} -C ${server_childs} -f ${php_cgi}    
+>   
+> [Install]    
+> WantedBy=multi-user.target    
+  root@ubuntu:~#    
+>   
+> #Конфиг службы    
+> root@ubuntu:~# cat /etc/default/phpfastcgi    
+> spawnfcgi="/usr/bin/spawn-fcgi"    
+> php_cgi="/usr/bin/php-cgi"    
+> prog=$(basename $php_cgi)    
+> server_ip=127.0.0.1    
+> server_port=9000    
+> server_user=www-data    
+> server_group=www-data    
+> server_childs=5    
+> pidfile="/var/run/php_cgi.pid"    
+> socket="/var/run/php-fcgi.sock"    
+>   
+> root@ubuntu:~# cat /etc/default/phpfastcgi    
+> spawnfcgi="/usr/bin/spawn-fcgi"    
+> php_cgi="/usr/bin/php-cgi"    
+> prog=$(basename $php_cgi)    
+> server_ip=127.0.0.1    
+> server_port=9000    
+> server_user=www-data    
+> server_group=www-data    
+> server_childs=5    
+> pidfile="/var/run/php_cgi.pid"    
+> socket="/var/run/php-fcgi.sock"    
+>   
+  #Запускаем службу    
+  root@ubuntu:~# systemctl daemon-reload;systemctl restart spawn-fcgi.service    
+  #Проверяем статус    
+  root@ubuntu:~# systemctl status spawn-fcgi.service    
+> ● spawn-fcgi.service - Run php-cgi as app server    
+     > Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; preset: enabled)    
+     > Active: active (running) since Sun 2025-10-12 20:29:25 MSK; 5s ago    
+   > Main PID: 21403 (php-cgi)    
+      > Tasks: 6 (limit: 2181)    
+     > Memory: 7.4M    
+        > CPU: 6ms    
+     > CGroup: /system.slice/spawn-fcgi.service    
+             > ├─21403 /usr/bin/php-cgi    
+             > ├─21404 /usr/bin/php-cgi    
+             > ├─21405 /usr/bin/php-cgi      
+             > ├─21406 /usr/bin/php-cgi  
+             > ├─21407 /usr/bin/php-cgi    
+             > └─21408 /usr/bin/php-cgi    
+>   
+> окт 12 20:29:25 ubuntu systemd[1]: Started Run php-cgi as app server.    
+> окт 12 20:29:25 ubuntu spawn-fcgi[21402]: spawn-fcgi: child spawned successfully: PID: 21403    
+>   
+> #Убеждаемся что порт прослушивается    
+  root@ubuntu:~# netstat -tulpn|grep 9000    
+> tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      21403/php-cgi    
+  root@ubuntu:~#    
+  
+###############################################################################################    
+#3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.    
+  
+> root@ubuntu:/etc/nginx# systemctl status nginx@inst*    
+> ● nginx@inst2.service - A high performance web server and a reverse proxy server    
+>      Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)    
+>      Active: active (running) since Sun 2025-10-12 21:01:29 MSK; 47s ago    
+>        Docs: man:nginx(8)    
+>    Main PID: 3010 (nginx)    
+      Tasks: 3 (limit: 2181)    
+>      Memory: 3.1M    
+        CPU: 9ms    
+     CGroup: /system.slice/system-nginx.slice/nginx@inst2.service    
+>              ├─3010 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst2.conf"    
+             ├─3011 "nginx: worker process"    
+             └─3012 "nginx: worker process"    
+  
+> окт 12 21:01:29 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...    
+> окт 12 21:01:29 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.    
+  
+> ● nginx@inst1.service - A high performance web server and a reverse proxy server    
+>      Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)    
+>      Active: active (running) since Sun 2025-10-12 21:01:27 MSK; 48s ago    
+>        Docs: man:nginx(8)    
+>    Main PID: 3003 (nginx)    
+      Tasks: 3 (limit: 2181)    
+>      Memory: 3.1M    
+        CPU: 9ms    
+     CGroup: /system.slice/system-nginx.slice/nginx@inst1.service    
+>              ├─3003 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst1.conf"    
+             ├─3004 "nginx: worker process"    
+             └─3005 "nginx: worker process"    
+  
+> окт 12 21:01:27 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...    
+> окт 12 21:01:27 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.    
+  
+root@ubuntu:/etc/nginx# netstat -tulpn|grep -i 808    
+> tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      3003/nginx: master    
+> tcp        0      0 0.0.0.0:8081            0.0.0.0:*               LISTEN      3010/nginx: master    
