@@ -732,41 +732,41 @@ tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      
 root@ubuntu:~#  
 
 ###############################################################################################  
-3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.  
+> 3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.  
 
-root@ubuntu:/etc/nginx# systemctl status nginx@inst*  
-● nginx@inst2.service - A high performance web server and a reverse proxy server  
-     Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)  
-     Active: active (running) since Sun 2025-10-12 21:01:29 MSK; 47s ago  
-       Docs: man:nginx(8)  
-   Main PID: 3010 (nginx)  
+> root@ubuntu:/etc/nginx# systemctl status nginx@inst*  
+> ● nginx@inst2.service - A high performance web server and a reverse proxy server  
+>      Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)  
+>      Active: active (running) since Sun 2025-10-12 21:01:29 MSK; 47s ago  
+>        Docs: man:nginx(8)  
+>    Main PID: 3010 (nginx)  
       Tasks: 3 (limit: 2181)  
-     Memory: 3.1M  
+>      Memory: 3.1M  
         CPU: 9ms  
      CGroup: /system.slice/system-nginx.slice/nginx@inst2.service  
-             ├─3010 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst2.conf"  
+>              ├─3010 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst2.conf"  
              ├─3011 "nginx: worker process"  
              └─3012 "nginx: worker process"  
 
-окт 12 21:01:29 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...  
-окт 12 21:01:29 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.  
+> окт 12 21:01:29 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...  
+> окт 12 21:01:29 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.  
 
-● nginx@inst1.service - A high performance web server and a reverse proxy server  
-     Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)  
-     Active: active (running) since Sun 2025-10-12 21:01:27 MSK; 48s ago  
-       Docs: man:nginx(8)  
-   Main PID: 3003 (nginx)  
+> ● nginx@inst1.service - A high performance web server and a reverse proxy server  
+>      Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)  
+>      Active: active (running) since Sun 2025-10-12 21:01:27 MSK; 48s ago  
+>        Docs: man:nginx(8)  
+>    Main PID: 3003 (nginx)  
       Tasks: 3 (limit: 2181)  
-     Memory: 3.1M  
+>      Memory: 3.1M  
         CPU: 9ms  
      CGroup: /system.slice/system-nginx.slice/nginx@inst1.service  
-             ├─3003 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst1.conf"  
+>              ├─3003 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on; -c /etc/nginx/nginx-inst1.conf"  
              ├─3004 "nginx: worker process"  
              └─3005 "nginx: worker process"  
 
-окт 12 21:01:27 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...  
-окт 12 21:01:27 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.  
+> окт 12 21:01:27 ubuntu systemd[1]: Starting A high performance web server and a reverse proxy server...  
+> окт 12 21:01:27 ubuntu systemd[1]: Started A high performance web server and a reverse proxy server.  
 
 root@ubuntu:/etc/nginx# netstat -tulpn|grep -i 808  
-tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      3003/nginx: master  
-tcp        0      0 0.0.0.0:8081            0.0.0.0:*               LISTEN      3010/nginx: master  
+> tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      3003/nginx: master  
+> tcp        0      0 0.0.0.0:8081            0.0.0.0:*               LISTEN      3010/nginx: master  
