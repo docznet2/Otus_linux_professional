@@ -735,7 +735,7 @@ root@ubuntu:~#
 ####################################################  
  #3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.    
   
-> root@ubuntu:/etc/nginx# systemctl status nginx@inst*    
+root@ubuntu:/etc/nginx# systemctl status nginx@inst*    
 > ● nginx@inst2.service - A high performance web server and a reverse proxy server    
 >      Loaded: loaded (/etc/systemd/system/nginx@.service; disabled; preset: enabled)    
 >      Active: active (running) since Sun 2025-10-12 21:01:29 MSK; 47s ago    
