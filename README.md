@@ -578,10 +578,10 @@ reboot
 
 
 ########################################################  
-#      0Инициализация системы. Systemd  
+#      09 Инициализация системы. Systemd  
 ########################################################  
   
-###############################################################################################  
+####################################################    
 #1. Написать service, который будет раз в 30 секунд мониторить лог на предмет наличия ключевого слова (файл лога и ключевое слово должны задаваться в /etc/default).  
 #Скрипт для развёртывания:  
   
@@ -624,7 +624,7 @@ chmod +x /opt/watchlog.sh
 > Description=Run watchlog script every 5 second  
 >   
 > [Timer]  
-> # Run every 5 second  
+> #Run every 5 second  
 > OnUnitActiveSec=5  
 > Unit=watchlog.service  
 >   
@@ -633,13 +633,13 @@ chmod +x /opt/watchlog.sh
 > EOF  
 >   
 >   
-systemctl daemon-reload  
-systemctl enable watchlog.timer  
-systemctl start watchlog.timer  
-exit  
+> systemctl daemon-reload  
+> systemctl enable watchlog.timer  
+> systemctl start watchlog.timer  
+> exit  
 >   
->   
-> ...  
+
+
 #Приводим в действие скрипт установки и настройки лог-чекера:  
 root@ubuntu:~# date  
 > Вс 12 окт 2025 19:47:42 MSK  
@@ -661,7 +661,7 @@ root@ubuntu:~# date
 > Oct 12 19:47:44 ubuntu systemd[1]: Reloading.  
 root@ubuntu:~#  
   
-###############################################################################################  
+####################################################    
 #2. Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта    
 #Служба    
   root@ubuntu:~# systemctl cat spawn-fcgi.service    
@@ -732,7 +732,7 @@ root@ubuntu:~#
 > tcp        0      0 127.0.0.1:9000          0.0.0.0:*               LISTEN      21403/php-cgi    
   root@ubuntu:~#    
   
-###############################################################################################    
+#################################################### 
 #3. Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.    
   
 > root@ubuntu:/etc/nginx# systemctl status nginx@inst*    
