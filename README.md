@@ -771,3 +771,97 @@ root@ubuntu:/etc/nginx# systemctl status nginx@inst*
 root@ubuntu:/etc/nginx# netstat -tulpn|grep -i 808    
 > tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      3003/nginx: master    
 > tcp        0      0 0.0.0.0:8081            0.0.0.0:*               LISTEN      3010/nginx: master    
+
+
+########################################################  
+#      10 Bash 
+########################################################  
+#Пишем скрипт
+
+#!/usr/bin/env bash
+scriptfile=$(basename "${0}")
+dup_run_count=$(ps -C ${scriptfile} --no-headers --format pid)
+dup_run_count=$(echo ${dup_run_count}|wc -w)
+if [[ "${dup_run_count}" -gt "1" ]];then exit;fi
+
+#Variables
+service=nginx
+service_start="$(date +'%s' -d "$(systemctl show --property ExecMainStartTimestamp ${service}.service|awk '{print $2,$3,$4}')")"
+service_start_human="$(date -d @${service_start})"
+log="/var/log/nginx/access.log"
+err_log="/var/log/nginx/error.log"
+tmp_log=/tmp/nginx_from_last_start
+tmp_err_log=/tmp/nginx_from_last_start_err
+
+AttClientAddresses=/tmp/ClientAddresses.log
+AttTopPages=/tmp/TopPages.log
+AttRecurnCodes=/tmp/RecurnCodes.log
+AttNginxErrors=/tmp/NginxErrors.log
+Recipient=vasya@neverdomain
+
+
+#Generate tmp err-log file
+while read -r line; do
+    record_ts=$(date +'%s' -d "$(awk '{print $1,$2}'|sed 's~/~-~g')")
+	if [[ "${record_ts}" -ge "${service_start}" ]];then
+		echo ${line}
+	fi
+done < ${err_log} > ${tmp_err_log}
+
+#Generate tmp log file
+while read -r line; do
+    record_ts=$(date +'%s' -d "$(echo ${line}|awk -F'[\[\]]' '{print $2}'|sed -r -e 's~/~-~g' -e 's~:~ ~')")
+	if [[ "${record_ts}" -ge "${service_start}" ]];then
+		echo ${line}
+	fi
+done < ${log} > ${tmp_log}
+
+#Top client addresses
+echo -en "\nTop client addresses:\n"
+for addr in $(awk '{print $1}' ${tmp_log}|sort -u);do 
+	echo $(grep "^${addr} " ${tmp_log}|wc -l) ${addr}
+done|sort -n -k1 -r|tee ${AttClientAddresses}
+
+#Top pages
+echo -en "\nTop pages:\n"
+for page in $(grep -oE 'GET.*' ${tmp_log}|awk '{print $2}'|sort -u);do 
+	echo $(grep "GET ${page} " ${tmp_log}|wc -l) ${page}
+done|sort -n -k1 -r|tee ${AttTopPages}
+
+#Top return-codes
+echo -en "\nTop return-codes:\n"
+for code in $(awk '{print $9}' ${tmp_log}|sort -u);do 
+	echo $(grep "\"[[:blank:]]*${code}[[:blank:]]*[0-9]*[[:blank:]]*\"" ${tmp_log}|wc -l) ${code}
+done|sort -n -k1 -r|tee ${AttRecurnCodes}
+
+#Errors
+echo -en "\nErrors:\n"
+cat ${tmp_err_log}|tee ${AttNginxErrors}
+
+#Send
+sendemail -f noreply@neverdomain -t ${Recipient} -u "Some Nginx tops" -m "Stats since ${service_start_human}" -a ${AttClientAddresses} -a ${AttTopPages} -a ${AttRecurnCodes} -a ${AttNginxErrors}
+
+exit
+
+#Вывод:
+> root@ubuntu:~# ./script.sh
+> 
+> Top client addresses:
+> 10 192.168.206.137
+> 7 192.168.206.1
+> 2 127.0.0.1
+> 
+> Top pages:
+> 15 /
+> 2 /hehe.html
+> 1 /kek.html
+> 1 /hehe
+> 
+> Top return-codes:
+> 13 200
+> 5 304
+> 1 404
+> 
+> Errors:
+> 2025/10/18 21:51:03 [notice] 3234#3234: using inherited sockets from "6;7;"
+> root@ubuntu:~#
