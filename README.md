@@ -866,3 +866,21 @@ exit
 > 2025/10/18 21:51:03 [notice] 3234#3234: using inherited sockets from "6;7;"
 > root@ubuntu:~#
 
+########################################################  
+#      12 Управление процессами  
+########################################################  
+
+#!/bin/bash
+for pfolder in $(ls -ld /proc/*/|grep -o '/proc/[0-9]*/$');do
+        pid=$(basename ${pfolder} 2>/dev/null)
+        user=$(stat -c '%U' ${pfolder} 2>/dev/null)
+        cmdline=$(cat ${pfolder}/cmdline 2>/dev/null|tr -d '\0';echo -en '\n'|sed 's/--/ --/g')
+        state=$(cat ${pfolder}/stat 2>/dev/null|awk '{print $3}')
+        command=$(cat ${pfolder}/comm 2>/dev/null)
+        exec=$(readlink -f /${pfolder}/exe 2>/dev/null)
+        terminal=$((test -e "${pfolder}/fd/0" && readlink -f ${pfolder}/fd/0|sed 's~/dev/~~') || echo null)
+        echo "${pid}~~~${user}~~~${terminal}~~~${state}~~~${command}~~~${cmdline}~~~"
+done|sort -h -k1|column -t -s'~~~' -N 'pid,user,terminal,state,command,cmdline'
+
+
+
