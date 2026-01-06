@@ -1,6 +1,6 @@
 $ssh_config = <<-SCRIPT
 sed -i -r -e "s/^(#|[[:blank:]]*)(KbdInteractiveAuthentication)(.*)/\\1\\2 yes/g" /etc/ssh/sshd_config
-sed -i -r -e "s/^(#|[[:blank:]]*)(PasswordAuthentication)(.*)/\\1\\2 yes/g" /etc/ssh/sshd_config
+sed -i -r -e "s/^(#|[[:blank:]]*)(PasswordAuthentication)(.*)/\\2 yes/g" /etc/ssh/sshd_config
 systemctl restart sshd||service sshd restart
 SCRIPT
 
