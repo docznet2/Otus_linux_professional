@@ -10,7 +10,8 @@ Vagrant.configure("2") do |config|
         end
     end
     config.vm.provision "shell", inline: <<-SHELL
-        sed -i -r -e 's/(#|[[:blank:]]*)(KbdInteractiveAuthentication)(.*)/\1\2 yes/g' /etc/ssh/sshd_config
+        sed -i -r -e 's/(#|[[:blank:]]*)(KbdInteractiveAuthentication)(.*)/\2 yes/g' /etc/ssh/sshd_config
+        sed -i -r -e 's/(#|[[:blank:]]*)(PasswordAuthentication)(.*)/\2 yes/g' /etc/ssh/sshd_config
     SHELL
 end
 
