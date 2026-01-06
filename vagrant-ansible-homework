@@ -1,0 +1,59 @@
+Vagrant.configure("2") do |config|
+	config.vm.define "homework" do |h|
+		h.vm.hostname = "homework.localdomain"
+			h.vm.box = "ubuntu/jammy64"
+			#h.vm.box = "generic/debian11"
+			h.vm.box_check_update = false
+			h.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+
+			h.vm.provider "virtualbox" do |vb|
+			        vb.memory = "2048"
+			        vb.cpus = "2"
+					
+					
+							#Disks
+					#Проверяем наличие нужного дискового контроллера
+					#vm_id = vb.instance_variable_get(:@machine).id rescue nil
+					#check_cmd = "VBoxManage showvminfo #{vm_id} --machinereadable | grep 'storagecontrollername.*SCSI Controller'"
+					#controller_exists = system(check_cmd)
+					#Добавляем контроллер если отсутствует
+					#unless controller_exists
+					#	vb.customize ["storagectl", :id, "--name", "SCSI", "--add", "scsi" ]
+					#end
+					
+					#vb.customize ["storagectl", :id, "--name", "SCSI", "--add", "scsi" ]
+					#Создаем файлы виртуальных дисков
+					(2..4).each do |i|
+						unless File.exist?("../disk#{i}.vdi")
+							vb.customize ['createhd', '--filename', "../disk#{i}.vdi",  '--variant', 'Standard', '--size', '250']
+						end
+						#Подключаем диски к машине
+						vb.customize ['storageattach', :id, '--storagectl', 'SCSI', '--port', "#{i}", '--device', 0, '--type', 'hdd', '--medium', "../disk#{i}.vdi"]
+					end
+
+			end
+	
+
+		    config.vm.provision "shell", inline: <<-SHELL
+				disknum=0
+				for disk in $(lsblk -o PATH,PTUUID|awk '{if ($2 == "") print $1}');do
+					disknum=$((disknum+1))
+					sudo mkfs.ext4 $disk
+					uuid=""
+					uuid=$(sudo blkid $disk --output value|head -n1)
+					if ! [[ "${uuid}" == "" ]];then
+						mkdir /disk${disknum}
+						grep "UUID=${uuid} /disk${disknum}           ext4    defaults        0       1" /etc/fstab || echo "UUID=${uuid} /disk${disknum}           ext4    defaults        0       1" >> /etc/fstab
+					fi
+				done
+				systemctl daemon-reload
+				mount -a
+				
+				apt-get update
+				apt-get install -y nginx
+			SHELL
+
+
+	  end
+end
