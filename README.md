@@ -884,6 +884,15 @@ done|sort -h -k1|column -t -s'~~~' -N 'pid,user,terminal,state,command,cmdline'
 
 
 
+########################################################  
+#      16 Ansible 
+########################################################  
+curl -o /tmp/ansible-homework.tar https://raw.githubusercontent.com/docznet2/Otus_linux_professional/refs/heads/main/ansible-homework.tar
+tar -xf /tmp/ansible-homework.tar -C /
+cd /ansible-homework
+echo "12345678" > ./vp;ansible-playbook ./playbook.yaml --vault-password-file ./vp -i ./inventory.yaml
+
+
 
 ########################################################  
 #      18 Vagrant 
